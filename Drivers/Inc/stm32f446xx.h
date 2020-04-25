@@ -106,7 +106,8 @@
  */
 #define EXTI_BASEADDR				(APB2_PERIPH_BASEADDR + 0X3C00U)	/* Base address of EXTI port */
 
-#define SPI1_BASEADDR				(APB2_PERIPH_BASEADDR + 0X2000U)	/* Base address of SPI1 port */
+#define SPI4_BASEADDR				(APB2_PERIPH_BASEADDR + 0X3400U)
+#define SPI1_BASEADDR				(APB2_PERIPH_BASEADDR + 0X3000U)	/* Base address of SPI1 port */
 
 #define SYSCFG_BASEADDR				(APB2_PERIPH_BASEADDR + 0X3800U)	/* Base address of SYSCFG port */
 
@@ -116,13 +117,112 @@
 /*
  * IRQ (Interrupt Request) numbers of STM32F446xx MCU
  */
-#define IRQ_NO_EXTI0			6
-#define IRQ_NO_EXTI1			7
-#define IRQ_NO_EXTI2			8
-#define IRQ_NO_EXTI3			9
-#define IRQ_NO_EXTI4			10
-#define IRQ_NO_EXTI_9_5			23
-#define IRQ_NO_15_10			40
+#define IRQ_WWDG					0
+#define IRQ_PVD						1
+#define IRQ_TAMP_STAMP				2
+#define IRQ_RTC_WKUP				3
+#define IRQ_FLASH					4
+#define IRQ_RCC						5
+#define IRQ_EXTI0					6
+#define IRQ_EXTI1					7
+#define IRQ_EXTI2					8
+#define IRQ_EXTI3					9
+#define IRQ_EXTI4					10
+#define IRQ_DMA1_STREAM0			11
+#define IRQ_DMA1_STREAM1			12
+#define IRQ_DMA1_STREAM2			13
+#define IRQ_DMA1_STREAM3			14
+#define IRQ_DMA1_STREAM4			15
+#define IRQ_DMA1_STREAM5			16
+#define IRQ_DMA1_STREAM6			17
+#define IRQ_ADC						18
+#define IRQ_CAN1_TX					19
+#define IRQ_CAN_RX0					20
+#define IRQ_CAN_RX1					21
+#define IRQ_CAN_SCE					22
+#define IRQ_EXTI_9_5				23
+#define IRQ_TIM1_BRK_TIM9			24
+#define IRQ_TIM1_UP_TIM10			25
+#define IRQ_TIM1_TRG_COM_TIM11		26
+#define IRQ_TIM1_CC					27
+#define IRQ_TIM2					28
+#define IRQ_TIM3					29
+#define IRQ_TIM4					30
+#define IRQ_I2C1_EV					31
+#define IRQ_I2C1_ER					32
+#define IRQ_I2C2_EV					33
+#define IRQ_I2C2_ER					34
+#define IRQ_SPI1					35
+#define IRQ_SPI2					36
+#define IRQ_USART1					37
+#define IRQ_USART2					38
+#define IRQ_USART3					39
+#define IRQ_EXTI_15_10				40
+#define IRQ_RTC_ALARM				41
+#define IRQ_OTG_FS_WKUP				42
+#define IRQ_TIM8_BRK_TIM12			43
+#define IRQ_TIM8_UP_TIM13			44
+#define IRQ_TIM8_TRG_COM_TIM14		45
+#define IRQ_TIM8_CC					46
+#define IRQ_DMA1_STREAM7			47
+#define IRQ_FMC						48
+#define IRQ_SDIO					49
+#define IRQ_TIM5					50
+#define IRQ_SPI3					51
+#define IRQ_USART4					52
+#define IRQ_UART5					53
+#define IRQ_TIM6_DAC				54
+#define IRQ_TIM7					55
+#define IRQ_DMA2_STREAM0			56
+#define IRQ_DMA2_STREAM1			57
+#define IRQ_DMA2_STREAM2			58
+#define IRQ_DMA2_STREAM3			59
+#define IRQ_DMA2_STREAM4			60
+#define IRQ_CAN2_TX					63
+#define IRQ_CAN2_RX00				64
+#define IRQ_CAN2_RX1				65
+#define IRQ_CAN2_SCE				66
+#define IRQ_OTG_FS					67
+#define IRQ_DMA2_STREAM5			68
+#define IRQ_DMA2_STREAM6			69
+#define IRQ_DMA2_STREAM7			70
+#define IRQ_USART6					71
+#define IRQ_I2C3_EV					72
+#define IRQ_I2C3_ER					73
+#define IRQ_OTG_HS_EP1_OUT			74
+#define IRQ_OTG_HS_EP1_IN			75
+#define IRQ_OTG_HS_WKUP				76
+#define IRQ_OTG_HS					77
+#define IRQ_DCMI					78
+#define IRQ_FPU						81
+#define IRQ_SPI4					84
+#define IRQ_SAI1					87
+#define IRQ_SAI2					91
+#define IRQ_QUAD_SPI				92
+#define IRQ_HDMI_CEC				93
+#define IRQ_SPDI_RX					94
+#define IRQ_FMPI2C1					95
+#define IRQ_FMPI2C1_ERROR			96
+
+/*
+ * IRQ Priority levels
+ */
+#define IRQ_PRI0		0
+#define IRQ_PRI1		1
+#define IRQ_PRI2		2
+#define IRQ_PRI3		3
+#define IRQ_PRI4		4
+#define IRQ_PRI5		5
+#define IRQ_PRI6		6
+#define IRQ_PRI7		7
+#define IRQ_PRI8		8
+#define IRQ_PRI9		9
+#define IRQ_PRI10		10
+#define IRQ_PRI11		11
+#define IRQ_PRI12		12
+#define IRQ_PRI13		13
+#define IRQ_PRI14		14
+#define IRQ_PRI15		15
 
 
 /******************************* Peripheral register definition structures *******************************/
@@ -203,12 +303,29 @@ typedef struct
 {
 	__vo uint32_t MEMRMP;		/*!< SYSCFG memory remap register,							Address offset: 0x00		*/
 	__vo uint32_t PMC;			/*!< SYSCFG peripheral mode configuration register, 		Address offset: 0x04		*/
-	__vo uint32_t EXTICR[4];		/*!< SYSCFG external interrupt configuration register, 		Address offset: 0x08 - 0x14	*/
+	__vo uint32_t EXTICR[4];	/*!< SYSCFG external interrupt configuration register, 		Address offset: 0x08 - 0x14	*/
 	__vo uint32_t RESERVED1[2];	/*!< Reserved,											 	Address offset: 0x18 - 0x1C	*/
-	__vo uint32_t CMPCR;			/*!< Compensation cell control register, 					Address offset: 0x20		*/
+	__vo uint32_t CMPCR;		/*!< Compensation cell control register, 					Address offset: 0x20		*/
 	__vo uint32_t RESERVED2[2];	/*!< Reserved,												Address offset: 0x24 - 0x28	*/
 	__vo uint32_t CFGR;			/*!< SYSCFG configuration register,							Address offset: 0x2C		*/
 }SYSCFG_RegDef_t;
+
+/*
+ * Peripheral register definition structure for SPI
+ */
+typedef struct
+{
+	__vo uint32_t CR1;		/*!< SPI control register 1, 			Address offset: 0x00	*/
+	__vo uint32_t CR2;		/*!< SPI control register 2, 			Address offset: 0x04	*/
+	__vo uint32_t SR;		/*!< SPI status register,    			Address offset: 0x08	*/
+	__vo uint32_t DR;		/*!< SPI data register,		 			Address offset: 0x0C	*/
+	__vo uint32_t CRCPR;	/*!< SPI CRC polynomial register,		Address offset: 0x10	*/
+	__vo uint32_t RXCRCR;	/*!< SPI RX CRC register,				Address offset: 0x14	*/
+	__vo uint32_t TXCRCR;	/*!< SPI TX CRC register,				Address offset: 0x18 */
+	__vo uint32_t I2SCFGR;	/*!< SPI_I2S configuration register,	Address offset: 0x1C	*/
+	__vo uint32_t I2SPR;	/*!< SPI_I2S prescalar register, 		Address offset: 0x20	*/
+}SPI_RegDef_t;
+
 
 /*
  * Peripheral definitions ( Peripheral base addresses typecasted to xxx_RegDef_t )
@@ -227,6 +344,11 @@ typedef struct
 #define EXTI		((EXTI_RegDef_t*)EXTI_BASEADDR)
 
 #define SYSCFG		((SYSCFG_RegDef_t*)SYSCFG_BASEADDR)
+
+#define SPI1		((SPI_RegDef_t*)SPI1_BASEADDR)
+#define SPI2		((SPI_RegDef_t*)SPI2_BASEADDR)
+#define SPI3		((SPI_RegDef_t*)SPI3_BASEADDR)
+#define SPI4		((SPI_RegDef_t*)SPI4_BASEADDR)
 
 /*
  * Clock enable macros for GPIOx peripherals
@@ -253,6 +375,7 @@ typedef struct
 #define SPI1_PCLK_EN()	( RCC->APB2ENR |= (1 << 12) )
 #define SPI2_PCLK_EN()	( RCC->APB1ENR |= (1 << 14) )
 #define SPI3_PCLK_EN()	( RCC->APB1ENR |= (1 << 15) )
+#define SPI4_PCLK_EN()  ( RCC->APB2ENR |= (1 << 13) )
 
 /*
  * Clock enable macros for USARx peripherals
@@ -274,7 +397,7 @@ typedef struct
 #define SYSCFG_PCLK_EN()	( RCC->APB2ENR |= (1 << 14) )
 
 /*
- * Clock enable macros for GPIOx peripherals
+ * Clock disable macros for GPIOx peripherals
  */
 #define GPIOA_PCLK_DI()	( RCC->AHB1ENR &= ~(1 << 0) )
 #define GPIOB_PCLK_DI()	( RCC->AHB1ENR &= ~(1 << 1) )
@@ -298,6 +421,7 @@ typedef struct
 #define SPI1_PCLK_DI()	( RCC->APB2ENR &= ~(1 << 12) )
 #define SPI2_PCLK_DI()	( RCC->APB1ENR &= ~(1 << 14) )
 #define SPI3_PCLK_DI()	( RCC->APB1ENR &= ~(1 << 15) )
+#define SPI4_PCLK_DI()	( RCC->APB2ENR &= ~(1 << 13) )
 
 /*
  * Clock disable macros for USARx peripherals

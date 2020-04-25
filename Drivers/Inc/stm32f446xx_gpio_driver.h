@@ -10,6 +10,9 @@
 
 #include "stm32f446xx.h"
 
+/*
+ * Configuration structure for GPIOx peripherals
+ */
 typedef struct
 {
 	uint32_t	GPIO_pinNumber;			/*!< possible values from @GPIO_PIN_NUMS */
@@ -21,7 +24,7 @@ typedef struct
 }GPIO_PinConfig_t;
 
 /*
- * This is a handle structure for a GPIO pin
+ * Handle structure for a GPIOx peripheral
  */
 typedef struct
 {
@@ -138,7 +141,7 @@ void GPIO_ToggleOutputPin(GPIO_RegDef_t *pGPIOx, uint8_t PinNumber);
  * IRQ Configutaion and ISR handling
  */
 void GPIO_IRQInterruptConfig(uint8_t IRQNumber, uint8_t EnorDi);
-void GPIO_IRQPriorityConfig(uint8_t IRQNumber, uint8_t IRQPriority);
+void GPIO_IRQPriorityConfig(uint8_t IRQNumber, uint32_t IRQPriority);
 void GPIO_IRQHandling(uint8_t PinNumber);
 
 #endif /* INC_STM32F446XX_GPIO_DRIVER_H_ */
