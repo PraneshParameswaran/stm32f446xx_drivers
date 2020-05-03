@@ -75,79 +75,43 @@ void SPI_PeriClockControl(SPI_RegDef_t *pSPIx, uint8_t EnOrDi)
  */
 void SPI_Init(SPI_Handle_t *pSPIHandle)
 {
-	/*
-	// Pin Mode
-	if (pSPIHandle->SPI_PinConfig.SPI_pinMode <= SPI_MODE_ANALOG)	// Non-interrupt mode
-	{
+	// Device mode
+	pSPIHandle->pSPIx->CR1 |= (pSPIHandle->SPIConfig.SPI_DeviceMode << SPI_CR1_MSTR);
 
-		pSPIHandle->pSPIx->MODER &= ~(0x3 << pSPIHandle->SPI_PinConfig.SPI_pinNumber);	// Clearing
-		pSPIHandle->pSPIx->MODER |= pSPIHandle->SPI_PinConfig.SPI_pinMode << (2 * pSPIHandle->SPI_PinConfig.SPI_pinNumber);
+	// Configure the bus config
+	if (pSPIHandle->SPIConfig.SPI_BusConfig == SPI_BUS_CFG_FULL_DUPLEX)
+	{
+		// Clear bidi mode
+		pSPIHandle->pSPIx->CR1 &~ (1 << SPI_CR1_BIDI_MODE);
 	}
-	else	// Interrupt mode
+	else if (pSPIHandle->SPIConfig.SPI_BusConfig == SPI_BUS_CFG_HALF_DUPLEX)
 	{
-		if (pSPIHandle->SPI_PinConfig.SPI_pinMode == SPI_MODE_FT)
-		{
-			// Configure the FTSR
-			EXTI->FTSR	|= (1 << pSPIHandle->SPI_PinConfig.SPI_pinNumber);
+		// Set bidi mode
+		pSPIHandle->pSPIx->CR1 |= (1 << SPI_CR1_BIDI_MODE);
+	}
+	else if (pSPIHandle->SPIConfig.SPI_BusConfig == SPI_BUS_CFG_SIMPLEX_RX_ONLY)
+	{
+		// Clear bidi mode
+		pSPIHandle->pSPIx->CR1 &~ (1 << SPI_CR1_BIDI_MODE);
 
-			// Clear the corresponding RTSRv
-			EXTI->RTSR &= ~(1 << pSPIHandle->SPI_PinConfig.SPI_pinNumber);
-		}
-
-		if (pSPIHandle->SPI_PinConfig.SPI_pinMode == SPI_MODE_RT)
-		{
-			// Configure the RTSR
-			EXTI->RTSR	|= (1 << pSPIHandle->SPI_PinConfig.SPI_pinNumber);
-
-			// Clear the corresponding FTSR
-			EXTI->FTSR &= ~(1 << pSPIHandle->SPI_PinConfig.SPI_pinNumber);
-		}
-
-		if (pSPIHandle->SPI_PinConfig.SPI_pinMode == SPI_MODE_RFT)
-		{
-			// Configure the FTSR and RTSR
-			EXTI->FTSR	|= (1 << pSPIHandle->SPI_PinConfig.SPI_pinNumber);
-			EXTI->RTSR	|= (1 << pSPIHandle->SPI_PinConfig.SPI_pinNumber);
-		}
-
-		// Configure the SPI port selection in SYSCFG_EXTICR
-		uint8_t reg_index = pSPIHandle->SPI_PinConfig.SPI_pinNumber / 4;
-		uint8_t shift_pos = pSPIHandle->SPI_PinConfig.SPI_pinNumber % 4;
-
-		uint8_t port_code = SPI_BASEADDR_TO_CODE(pSPIHandle->pSPIx);
-
-		SYSCFG_PCLK_EN();	// Enable the peripheral clock
-
-		SYSCFG->EXTICR[reg_index] = (port_code << (shift_pos * 4));
-
-		// Enable the EXTI interrupt delivery using IMR
-		EXTI->IMR |= (1 << pSPIHandle->SPI_PinConfig.SPI_pinNumber);
+		// Set RXONLY bit
+		pSPIHandle->pSPIx->CR1 |= (1 << SPI_CR1_RX_ONLY);
 	}
 
-	// Output type
-	pSPIHandle->pSPIx->OTYPER &= ~(0x1 << pSPIHandle->SPI_PinConfig.SPI_pinNumber);	// Clearing
-	pSPIHandle->pSPIx->OTYPER |= pSPIHandle->SPI_PinConfig.SPI_pinOPType << pSPIHandle->SPI_PinConfig.SPI_pinNumber;
+	// Serial clock speed (baud rate)
+	pSPIHandle->pSPIx->CR1 |= (pSPIHandle->SPIConfig.SPI_SclkSpeed << SPI_CR1_BR);
 
-	// Output speed
-	pSPIHandle->pSPIx->OSPEEDER &= ~(0x1 << pSPIHandle->SPI_PinConfig.SPI_pinNumber);	// Clearing
-	pSPIHandle->pSPIx->OSPEEDER |= pSPIHandle->SPI_PinConfig.SPI_pinSpeed << (2 * pSPIHandle->SPI_PinConfig.SPI_pinNumber);
+	// Data frame format
+	pSPIHandle->pSPIx->CR1 |= (pSPIHandle->SPIConfig.SPI_DFF << SPI_CR1_DFF);
 
-	// Pull-up/Pull-down control
-	pSPIHandle->pSPIx->PUPDR &= ~(0x1 << pSPIHandle->SPI_PinConfig.SPI_pinNumber);	// Clearing
-	pSPIHandle->pSPIx->PUPDR |= pSPIHandle->SPI_PinConfig.SPI_pinPuPdControl << (2 * pSPIHandle->SPI_PinConfig.SPI_pinNumber);
+	// Serial clock polarity
+	pSPIHandle->pSPIx->CR1 |= (pSPIHandle->SPIConfig.SPI_CPOL << SPI_CR1_CPOL);
 
-	// Alternate functionality
-	if (pSPIHandle->pSPIx->MODER == SPI_MODE_ATL_FN)
-	{
-		uint8_t reg_index, shift_pos;
+	// Serial clock phase
+	pSPIHandle->pSPIx->CR1 |= (pSPIHandle->SPIConfig.SPI_CPHA << SPI_CR1_CPHA);
 
-		reg_index = pSPIHandle->SPI_PinConfig.SPI_pinNumber / 8;
-		shift_pos = pSPIHandle->SPI_PinConfig.SPI_pinNumber % 8;
-
-		pSPIHandle->pSPIx->AFR[reg_index] &= ~(0xF << pSPIHandle->SPI_PinConfig.SPI_pinNumber);	// Clearing
-		pSPIHandle->pSPIx->AFR[reg_index] |= pSPIHandle->SPI_PinConfig.SPI_PinAltFunMode << (4 * shift_pos);
-	}
-*/
+	// Software slave management
+	pSPIHandle->pSPIx->CR1 |= (pSPIHandle->SPIConfig.SPI_SSM << SPI_CR1_SSM);
 }
 
 /*********************************************************************
