@@ -8,6 +8,8 @@
 #ifndef INC_STM32F446XX_SPI_DRIVER_H_
 #define INC_STM32F446XX_SPI_DRIVER_H_
 
+#include "stm32f446xx.h"
+
 /*
  * Configuration structure for SPIx peripherals
  */
@@ -28,7 +30,7 @@ typedef struct
 typedef struct
 {
 	SPI_RegDef_t		*pSPIx;		/*!< This holds the base address of the SPI peripheral	*/
-	SPI_PinConfig_t		SPIConfig;	/*!< This holds GPIO pin configuration settings	*/
+	SPI_Config_t		SPIConfig;	/*!< This holds GPIO pin configuration settings	*/
 }SPI_Handle_t;
 
 /*
@@ -130,6 +132,18 @@ typedef struct
 #define SPI_SR_OVR			6
 #define SPI_SR_BSY			7
 
+/*
+ * SPI related status flag definition
+ */
+#define SPI_RXNE_FLAG		(1 << SPI_SR_RXNE)
+#define SPI_TXE_FLAG 		(1 << SPI_SR_TXE)
+#define SPI_CHSIDE_FLAG		(1 << SPI_SR_CHSIDE)
+#define SPI_UDR_FLAG		(1 << SPI_SR_UDR)
+#define SPI_CRC_ERR_FLAG	(1 << SPI_SR_CRC_ERR)
+#define SPI_MODF_FLAG		(1 << SPI_SR_MODF)
+#define SPI_OVR_FLAG		(1 << SPI_SR_OVR)
+#define SPI_BUSY_FLAG		(1 << SPI_SR_BSY)
+
 /****************************************************************************
  * 						APIs supported by this Driver
  * 		For more information about the APIs check the function definitions
@@ -147,19 +161,20 @@ void SPI_Init(SPI_Handle_t *pSPIHandle);
 void SPI_DeInit(SPI_RegDef_t *pSPIx);
 
 /*
- * Data read and write
+ * Data Send and Receive
  */
-uint8_t SPI_ReadFromInputPin(SPI_RegDef_t *pSPIx, uint8_t PinNumber);
-uint16_t SPI_ReadFromInputPort(SPI_RegDef_t *pSPIx);
-void SPI_WriteToOutputPin(SPI_RegDef_t *pSPIx, uint8_t PinNumber, uint8_t Value);
-void SPI_WriteToOutputPort(SPI_RegDef_t *pSPIx, uint16_t Value);
-void SPI_ToggleOutputPin(SPI_RegDef_t *pSPIx, uint8_t PinNumber);
-
+void SPI_SendData(SPI_RegDef_t *pSPIx,uint8_t *pTxBuffer, uint32_t Len);
+void SPI_ReceiveData(SPI_RegDef_t *pSPIx, uint8_t *pRxBuffer, uint32_t Len);
 /*
  * IRQ Configutaion and ISR handling
  */
 void SPI_IRQInterruptConfig(uint8_t IRQNumber, uint8_t EnorDi);
 void SPI_IRQPriorityConfig(uint8_t IRQNumber, uint32_t IRQPriority);
 void SPI_IRQHandling(SPI_RegDef_t *pHandle);
+
+/*
+ * Helper functions
+ */
+uint8_t SPI_GetFlagStatus(SPI_RegDef_t *pSPIx , uint32_t FlagPosition);
 
 #endif /* INC_STM32F446XX_SPI_DRIVER_H_ */

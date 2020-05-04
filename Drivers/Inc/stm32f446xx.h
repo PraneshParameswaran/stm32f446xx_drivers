@@ -455,6 +455,15 @@ typedef struct
 #define GPIOH_REG_RESET()	do{ (RCC->AHB1RSTR |= (1 << 7));	(RCC->AHB1RSTR &= ~(1 << 7)); }while(0)
 
 /*
+ * Reset macros for SPIx peripherals
+ */
+#define SPI1_REG_RESET()	do{ (RCC->APB2RSTR |= (1 << 12));	(RCC->APB2RSTR &= ~(1 << 12)); }while(0);
+#define SPI2_REG_RESET()	do{ (RCC->APB2RSTR |= (1 << 14));	(RCC->APB2RSTR &= ~(1 << 14)); }while(0);
+#define SPI3_REG_RESET()	do{ (RCC->APB2RSTR |= (1 << 15));	(RCC->APB2RSTR &= ~(1 << 15)); }while(0);
+#define SPI4_REG_RESET()	do{ (RCC->APB2RSTR |= (1 << 13));	(RCC->APB2RSTR &= ~(1 << 13)); }while(0);
+
+
+/*
  * Returns port code for (0 - 7) for a given GPIO base address
  */
 #define GPIO_BASEADDR_TO_CODE(x)	((x == GPIOA)? 0 : \
@@ -466,6 +475,8 @@ typedef struct
 									 (x == GPIOG)? 6 : \
 									 (x == GPIOH)? 7 : 0)
 
+
+
 /******************************************************************************
  * 								Generic Macros
  ******************************************************************************/
@@ -476,5 +487,7 @@ typedef struct
 #define RESET				DISABLE
 #define GPIO_PIN_SET		SET
 #define GPIO_PIN_RESET		RESET
+#define FLAG_SET			SET
+#define FLAG_RESET			RESET
 
 #endif /* INC_STM32F446XX_H_ */

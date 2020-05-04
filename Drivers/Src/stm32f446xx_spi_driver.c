@@ -82,7 +82,7 @@ void SPI_Init(SPI_Handle_t *pSPIHandle)
 	if (pSPIHandle->SPIConfig.SPI_BusConfig == SPI_BUS_CFG_FULL_DUPLEX)
 	{
 		// Clear bidi mode
-		pSPIHandle->pSPIx->CR1 &~ (1 << SPI_CR1_BIDI_MODE);
+		pSPIHandle->pSPIx->CR1 &= ~(1 << SPI_CR1_BIDI_MODE);
 	}
 	else if (pSPIHandle->SPIConfig.SPI_BusConfig == SPI_BUS_CFG_HALF_DUPLEX)
 	{
@@ -92,7 +92,7 @@ void SPI_Init(SPI_Handle_t *pSPIHandle)
 	else if (pSPIHandle->SPIConfig.SPI_BusConfig == SPI_BUS_CFG_SIMPLEX_RX_ONLY)
 	{
 		// Clear bidi mode
-		pSPIHandle->pSPIx->CR1 &~ (1 << SPI_CR1_BIDI_MODE);
+		pSPIHandle->pSPIx->CR1 &= ~(1 << SPI_CR1_BIDI_MODE);
 
 		// Set RXONLY bit
 		pSPIHandle->pSPIx->CR1 |= (1 << SPI_CR1_RX_ONLY);
@@ -146,88 +146,59 @@ void SPI_DeInit(SPI_RegDef_t *pSPIx)
 }
 
 /*********************************************************************
- * @fn      		  - SPI_ReadFromInputPin
+ * @fn      		  - SPI_SendData
  *
- * @brief             - This function reads input from a SPI pin
+ * @brief             - This function sends data via SPI
  *
  * @param[in]         - base address of the SPI  peripheral
- * @param[in]		  - input pin number to read from
+ * @param[in]		  - pointer to data buffer to be transmitted
+ * @param[in]		  - length of the data
  *
  * @return            - value read from the pin
  *
- * @Note              - none
+ * @Note              - This is a blocking call
  */
-uint8_t SPI_ReadFromInputPin(SPI_RegDef_t *pSPIx, uint8_t PinNumber)
+void SPI_SendData(SPI_RegDef_t *pSPIx,uint8_t *pTxBuffer, uint32_t Len)
 {
-	/*
-	return (uint8_t)((pSPIx->IDR >> PinNumber) & (0x00000001));
-	*/
-}
-
-/*********************************************************************
- * @fn      		  - SPI_ReadFromInputPort
- *
- * @brief             - This function reads input from a SPI port
- *
- * @param[in]         - base address of the SPI  peripheral
- *
- * @return            - value read from the port
- *
- * @Note              - none
- */
-uint16_t SPI_ReadFromInputPort(SPI_RegDef_t *pSPIx)
-{
-	/*
-	return (uint16_t)(pSPIx->IDR);
-	*/
-}
-
-/*********************************************************************
- * @fn      		  - SPI_WriteToOutputPin
- *
- * @brief             - This function writes to a SPI output pin
- *
- * @param[in]         - base address of the SPI  peripheral
- * @param[in]         - pin number to write to
- * @param[in]		  - value to be written to the pin
- *
- * @return            - none
- *
- * @Note              - none
- */
-void SPI_WriteToOutputPin(SPI_RegDef_t *pSPIx, uint8_t PinNumber, uint8_t Value)
-{
-	/*
-	if (Value == SPI_PIN_SET)
+	while (Len > 0)
 	{
-		pSPIx->ODR |= (1 << PinNumber);
-	}
+		while (SPI_GetFlagStatus(pSPIx, SPI_TXE_FLAG) == FLAG_RESET)
+		{
+			// Wait until TXE is set
+			while(SPI_GetFlagStatus(pSPIx,SPI_TXE_FLAG)  == FLAG_RESET );
 
-	if (Value == SPI_PIN_RESET)
-	{
-		pSPIx->ODR &= ~(1 << PinNumber);
+			// Check the DFF bit in CR1
+			if( (pSPIx->CR1 & ( 1 << SPI_CR1_DFF) ) )
+			{
+				//16 bit DFF
+
+				// Load the data in to the DR
+				pSPIx->DR =   *((uint16_t*)pTxBuffer);
+				Len-= 2;
+
+				(uint16_t*)pTxBuffer++;
+			}
+			else
+			{
+				//8 bit DFF
+
+				pSPIx->DR =   *pTxBuffer;
+				Len--;
+
+				pTxBuffer++;
+			}
+		}
 	}
-	*/
 }
 
-/*********************************************************************
- * @fn      		  - SPI_WriteToOutputPort
- *
- * @brief             - This function writes to a SPI output port
- *
- * @param[in]         - base address of the SPI  peripheral
- * @param[in]		  - value to be written to the port
- *
- * @return            - none
- *
- * @Note              - none
- */
-void SPI_WriteToOutputPort(SPI_RegDef_t *pSPIx, uint16_t Value)
+
+void SPI_ReceiveData(SPI_RegDef_t *pSPIx, uint8_t *pRxBuffer, uint32_t Len)
 {
-	/*
-	pSPIx->ODR = Value;
-	*/
+
 }
+
+
+
 
 /*********************************************************************
  * @fn      		  - SPI_ToggleOutputPin
@@ -359,5 +330,31 @@ void SPI_IRQHandling(SPI_RegDef_t *pHandle)
 		EXTI->PR |= (1 << PinNumber);
 	}
 	*/
+}
+
+/*********************************************************************
+ * @fn      		  - SPI_GetFlagStatus
+ *
+ * @brief             - This function is used to get the status of the SPI peripheral flag
+ *
+ * @param[in]         - base address of the SPI peripheral
+ * @param[in]         - name of the flag
+ *
+ * @return            - none
+ *
+ * @Note              - none
+ */
+uint8_t SPI_GetFlagStatus(SPI_RegDef_t *pSPIx , uint32_t FlagPosition)
+{
+	if(pSPIx->SR & FlagPosition)
+	{
+		return FLAG_SET;
+	}
+	else
+	{
+		return FLAG_RESET;
+	}
+
+	return FLAG_RESET;
 }
 
