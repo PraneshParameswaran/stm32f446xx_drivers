@@ -192,12 +192,51 @@ void SPI_SendData(SPI_RegDef_t *pSPIx,uint8_t *pTxBuffer, uint32_t Len)
 }
 
 
+/*********************************************************************
+ * @fn      		  - SPI_ReceiveData
+ *
+ * @brief             - This function sends data via SPI
+ *
+ * @param[in]         - base address of the SPI  peripheral
+ * @param[in]		  - pointer to the receive data buffer
+ * @param[in]		  - length of the data
+ *
+ * @return            - value read from the pin
+ *
+ * @Note              - This is a blocking call
+ */
 void SPI_ReceiveData(SPI_RegDef_t *pSPIx, uint8_t *pRxBuffer, uint32_t Len)
 {
+	while (Len > 0)
+	{
+		while (SPI_GetFlagStatus(pSPIx, SPI_RXNE_FLAG) == FLAG_RESET)
+		{
+			// Wait until RXE is set
+			while(SPI_GetFlagStatus(pSPIx,SPI_RXNE_FLAG)  == FLAG_RESET );
 
+			// Check the DFF bit in CR1
+			if( (pSPIx->CR1 & ( 1 << SPI_CR1_DFF) ) )
+			{
+				//16 bit DFF
+
+				// Load the data in to the DR
+				*((uint16_t*)pRxBuffer) = pSPIx->DR;
+				Len-= 2;
+
+				(uint16_t*)pRxBuffer++;
+			}
+			else
+			{
+				//8 bit DFF
+
+				*pRxBuffer = pSPIx->DR;
+				Len--;
+
+				pRxBuffer++;
+			}
+		}
+	}
 }
-
-
 
 
 /*********************************************************************
@@ -330,6 +369,84 @@ void SPI_IRQHandling(SPI_RegDef_t *pHandle)
 		EXTI->PR |= (1 << PinNumber);
 	}
 	*/
+}
+
+/*********************************************************************
+ * @fn      		  - SPI_PeripheralControl
+ *
+ * @brief             - This function is used to enable/disable peripheral control
+ *
+ * @param[in]         - base address of the SPI  peripheral
+ * @param[in]         - ENABLE or DISABLE macro
+ *
+ * @return            -
+ *
+ * @Note              -
+ */
+void SPI_PeripheralControl(SPI_RegDef_t *pSPIx, uint8_t EnOrDi)
+{
+	if(EnOrDi == ENABLE)
+	{
+		pSPIx->CR1 |=  (1 << SPI_CR1_SPE);
+	}
+	else
+	{
+		pSPIx->CR1 &=  ~(1 << SPI_CR1_SPE);
+	}
+}
+
+
+/*********************************************************************
+ * @fn      		  - SPI_SSIConfig
+ *
+ * @brief             - This function is used to enable/disable SSI
+ *
+ * @param[in]         - base address of the SPI  peripheral
+ * @param[in]         - ENABLE or DISABLE macro
+ *
+ * @return            -
+ *
+ * @Note              -
+ */
+void  SPI_SSIConfig(SPI_RegDef_t *pSPIx, uint8_t EnOrDi)
+{
+	if(EnOrDi == ENABLE)
+	{
+		pSPIx->CR1 |=  (1 << SPI_CR1_SSI);
+	}
+	else
+	{
+		pSPIx->CR1 &=  ~(1 << SPI_CR1_SSI);
+	}
+
+
+}
+
+
+/*********************************************************************
+ * @fn      		  - SPI_SSOEConfig
+ *
+ * @brief             - This function is used to enable/disable SSOE
+ *
+ * @param[in]         - base address of the SPI  peripheral
+ * @param[in]         - ENABLE or DISABLE macro
+ *
+ * @return            -
+ *
+ * @Note              -
+ */
+void  SPI_SSOEConfig(SPI_RegDef_t *pSPIx, uint8_t EnOrDi)
+{
+	if(EnOrDi == ENABLE)
+	{
+		pSPIx->CR2 |=  (1 << SPI_CR2_SSOE);
+	}
+	else
+	{
+		pSPIx->CR2 &=  ~(1 << SPI_CR2_SSOE);
+	}
+
+
 }
 
 /*********************************************************************
