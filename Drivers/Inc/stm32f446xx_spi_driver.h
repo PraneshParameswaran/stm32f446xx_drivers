@@ -29,9 +29,32 @@ typedef struct
  */
 typedef struct
 {
-	SPI_RegDef_t		*pSPIx;		/*!< This holds the base address of the SPI peripheral	*/
-	SPI_Config_t		SPIConfig;	/*!< This holds GPIO pin configuration settings	*/
+	SPI_RegDef_t		*pSPIx;		/*!< Base address of the SPI peripheral	*/
+	SPI_Config_t		SPIConfig;	/*!< GPIO pin configuration settings	*/
+	uint8_t				*pTxBuffer;	/*!< Application Tx buffer address */
+	uint8_t 			*pRxBuffer; /*!< Application Rx buffer address */
+	uint32_t			TxLen;		/*!< Tx length */
+	uint32_t			RxLen;		/*!< Rx length */
+	uint8_t				TxState;	/*!< Tx state, possible values from @SPI_APP_STATES */
+	uint8_t 			RxState;	/*!< Rx state, possible values from @SPI_APP_STATES */
 }SPI_Handle_t;
+
+/*
+ * @SPI_APP_STATES
+ * SPI application states
+ */
+#define SPI_READY			0
+#define SPI_BUSY_IN_RX		1
+#define SPI_BUSY_IN_TX		2
+
+/*
+ * @SPI_APP_EVENTS
+ * SPI Application events
+ */
+#define SPI_EVENT_TX_CMPLT   1
+#define SPI_EVENT_RX_CMPLT   2
+#define SPI_EVENT_OVR_ERR    3
+#define SPI_EVENT_CRC_ERR    4
 
 /*
  * @SPI_DEVICE_MODES
@@ -165,19 +188,36 @@ void SPI_DeInit(SPI_RegDef_t *pSPIx);
  */
 void SPI_SendData(SPI_RegDef_t *pSPIx,uint8_t *pTxBuffer, uint32_t Len);
 void SPI_ReceiveData(SPI_RegDef_t *pSPIx, uint8_t *pRxBuffer, uint32_t Len);
+
+uint8_t SPI_SendDataIT(SPI_Handle_t *pSPIHandle,uint8_t *pTxBuffer, uint32_t Len);
+uint8_t SPI_ReceiveDataIT(SPI_Handle_t *pSPIHandle, uint8_t *pRxBuffer, uint32_t Len);
+
 /*
  * IRQ Configutaion and ISR handling
  */
 void SPI_IRQInterruptConfig(uint8_t IRQNumber, uint8_t EnorDi);
 void SPI_IRQPriorityConfig(uint8_t IRQNumber, uint32_t IRQPriority);
-void SPI_IRQHandling(SPI_RegDef_t *pHandle);
+void SPI_IRQHandling(SPI_Handle_t *pSPIHandle);
+
+/*
+ * Application callback
+ */
+void SPI_ApplicationEventCallback(SPI_Handle_t *pSPIHandle,uint8_t AppEvent);
 
 /*
  * Peripheral control APIs
  */
 void SPI_PeripheralControl(SPI_RegDef_t *pSPIx, uint8_t EnOrDi);
+
 void SPI_SSIConfig(SPI_RegDef_t *pSPIx, uint8_t EnOrDi);
 void SPI_SSOEConfig(SPI_RegDef_t *pSPIx, uint8_t EnOrDi);
+
+uint8_t SPI_GetFlagStatus(SPI_RegDef_t *pSPIx , uint32_t FlagName);
+
+void SPI_ClearOVRFlag(SPI_RegDef_t *pSPIx);
+
+void SPI_CloseTransmisson(SPI_Handle_t *pSPIHandle);
+void SPI_CloseReception(SPI_Handle_t *pSPIHandle);
 
 /*
  * Helper functions
