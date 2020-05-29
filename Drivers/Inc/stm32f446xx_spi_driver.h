@@ -30,7 +30,7 @@ typedef struct
 typedef struct
 {
 	SPI_RegDef_t		*pSPIx;		/*!< Base address of the SPI peripheral	*/
-	SPI_Config_t		SPIConfig;	/*!< GPIO pin configuration settings	*/
+	SPI_Config_t		SPIConfig;	/*!< SPI pin configuration settings	*/
 	uint8_t				*pTxBuffer;	/*!< Application Tx buffer address */
 	uint8_t 			*pRxBuffer; /*!< Application Rx buffer address */
 	uint32_t			TxLen;		/*!< Tx length */
@@ -154,6 +154,7 @@ typedef struct
 #define SPI_SR_MODF			5
 #define SPI_SR_OVR			6
 #define SPI_SR_BSY			7
+#define SPI_SR_FRE			8
 
 /*
  * SPI related status flag definition
